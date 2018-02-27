@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractFilesMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 列表 -->
+    <select id="listPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+	      *
+        FROM
+	      contractfiles
+	    WHERE 1=1
+        <if test="pd.contractId != null and pd.contractId != ''">
+            AND contractId = #{pd.contractId}
+        </if>
+    </select>
+
+    <!-- 批量新增 -->
+    <insert id="batchSave" parameterType="java.util.List" flushCache="false">
+        INSERT INTO contractfiles (
+            contractId,
+            modelFileId,
+            fileName,
+            url
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+        (
+        #{item.contractId},
+        #{item.modelFileId},
+        #{item.fileName},
+        #{item.url}
+        )
+    </foreach>
+    </insert>
+
+    <!-- 通过id获取数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+          *
+        FROM
+          contractfiles
+        WHERE
+          contractId = #{ID}
+    </select>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.admin.entity.enterprise.ContractFiles" flushCache="false">
+        UPDATE
+          contractfiles
+        <set>
+            <if test="contractId != null and contractId != ''">
+                contractId = #{contractId},
+            </if>
+            <if test="modelFileId != null and modelFileId != ''">
+                modelFileId = #{modelFileId},
+            </if>
+            <if test="fileName != null and fileName != ''">
+                fileName = #{fileName},
+            </if>
+            <if test="url != null and url != ''">
+                url = #{url},
+            </if>
+        </set>
+        WHERE
+          targetFileId = #{targetFileId}
+    </update>
+
+    <!-- 更新Url -->
+    <update id="updateUrl" parameterType="com.admin.entity.enterprise.ContractFiles" flushCache="false">
+        UPDATE
+          contractfiles
+        SET
+          url = #{url}
+        WHERE
+          targetFileId = #{targetFileId}
+    </update>
+
+    <!-- 删除 -->
+    <delete id="delete" parameterType="pd" flushCache="false">
+        delete from contractfiles
+        where
+        targetFileId = #{ID}
+    </delete>
+
+    <!-- 新增 -->
+    <insert id="saveOne" useGeneratedKeys="true" keyProperty="targetFileId" flushCache="false">
+        INSERT INTO contractfiles (
+        contractId,
+        modelFileId,
+        fileName,
+        url
+        ) VALUES(
+        #{contractId},
+        #{modelFileId},
+        #{fileName},
+        #{url}
+        )
+    </insert>
+
+    <!-- 通过id获取合同word -->
+    <select id="findWordByContractId" parameterType="int" resultType="com.admin.entity.enterprise.ContractFiles" useCache="false">
+        SELECT
+          *
+        FROM
+          contractfiles
+        WHERE
+          contractId = #{contractId}
+        AND modelFileId is NOT NULL
+    </select>
+
+
+    <!-- 通过id获取合同word -->
+    <select id="findByTargetFileId" parameterType="int" resultType="com.admin.entity.enterprise.ContractFiles" useCache="false">
+        SELECT
+        *
+        FROM
+        contractfiles
+        WHERE
+        targetFileId = #{targetFileId}
+        AND modelFileId is NOT NULL
+    </select>
+
+
+    <!-- 通过targetFileId删除 -->
+    <delete id="deleteByTargetFileId" parameterType="int" flushCache="false">
+        delete from contractfiles
+        where
+        targetFileId = #{targetFileId}
+    </delete>
+
+    <!-- 通过id获取数据 -->
+    <select id="findContractFJ" parameterType="int" resultType="com.admin.entity.enterprise.ContractFiles" useCache="false">
+        SELECT
+        *
+        FROM
+        contractfiles
+        WHERE
+        contractId = #{contractId} and modelFileId is null;
+    </select>
+
+    <!-- 通过contractId和modelFileId获取数据 -->
+    <select id="findByContractIdAndModelFileId" parameterType="pd" resultType="com.admin.entity.enterprise.ContractFiles" useCache="false">
+        SELECT
+        *
+        FROM
+        contractfiles
+        WHERE
+        contractId = #{contractId} and modelFileId = #{modelFileId};
+    </select>
+
+    <!-- 删除 -->
+    <delete id="deleteContractFJ" parameterType="int" flushCache="false">
+        delete from contractfiles
+        where
+        targetFileId = #{targetFileId}
+    </delete>
+
+</mapper>

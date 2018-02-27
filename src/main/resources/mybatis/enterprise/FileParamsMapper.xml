@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="FileParamsMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 新增 -->
+    <insert id="batchSave" parameterType="java.util.List" flushCache="false">
+        INSERT INTO fileparams (
+            modelFileId,
+            tableName,
+            param,
+            paramType,
+            columnIndex
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.modelFileId},
+            #{item.tableName},
+            #{item.param},
+            #{item.paramType},
+            #{item.columnIndex}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 批量删除 -->
+    <delete id="batchDelete" parameterType="int" flushCache="false">
+        delete from fileparams
+        where
+        modelFileId in (
+          SELECT modelFileId FROM MODELFILES
+          WHERE modelId = #{modelId}
+          )
+    </delete>
+
+    <!--根据合同模板查询出对应的合同参数-->
+    <select id="listTemplateParam" parameterType="int" resultType="com.admin.entity.enterprise.FileParams" useCache="false">
+        SELECT  f.modelFileId,f.param,f.paramType,f.tableName,f.columnIndex
+        FROM fileparams f
+        LEFT JOIN MODELFILES m ON f.modelFileId = m.modelFileId
+        WHERE m.modelId = #{modelId}
+    </select>
+
+    <!--根据合同modelFileId查询出对应的合同参数-->
+    <select id="listParam" parameterType="int" resultType="com.admin.entity.enterprise.FileParams" useCache="false">
+        SELECT  *
+        FROM fileparams
+        WHERE modelFileId = #{modelFileId}
+    </select>
+
+    <select id="listTableName" parameterType="int" resultType="string" useCache="false">
+        select distinct tableName  from fileparams where modelFileId = #{modelFileId};
+    </select>
+
+
+    <!--根据合同paramFileId查询出对应的合同参数-->
+    <select id="findByParamId" parameterType="int" resultType="com.admin.entity.enterprise.FileParams" useCache="false">
+        SELECT  *
+        FROM fileparams
+        WHERE paramId = #{paramId}
+    </select>
+
+
+</mapper>

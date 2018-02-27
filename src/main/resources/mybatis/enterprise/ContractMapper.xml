@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 列表 -->
+    <select id="listPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          contract.*, model.name as modelName
+        FROM
+          contract contract
+        LEFT JOIN contracttemplate contracttemplate ON contract.templateId = contracttemplate.templateId
+        LEFT JOIN model model ON model.modelId = contracttemplate.modelId
+        WHERE
+          1 = 1
+        AND (contract.publisherOrgId = #{pd.orgId}
+        OR contract.delegatorOrgId = #{pd.orgId}
+        OR contract.manageOrgId =#{pd.orgId}) <!-- 合同相关机构才能看 -->
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            model.name LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.contractStatus != null and pd.contractStatus != ''"><!-- 合同状态检索 -->
+            AND contract.status = #{pd.contractStatus}
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY contract.contractId DESC
+    </select>
+
+    <!-- 受托审核列表 -->
+    <select id="stlistPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          contract.*, model.name as modelName
+        FROM
+          contract contract
+        LEFT JOIN contracttemplate contracttemplate ON contract.templateId = contracttemplate.templateId
+        LEFT JOIN model model ON model.modelId = contracttemplate.modelId
+        WHERE
+          1 = 1
+        AND contract.delegatorOrgId = #{pd.orgId}
+        AND contract.status = #{pd.status}
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            model.name LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY contract.contractId ASC
+    </select>
+
+    <!-- 风控审核列表 -->
+    <select id="fklistPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          contract.*, model.name as modelName
+        FROM
+          contract contract
+        LEFT JOIN contracttemplate contracttemplate ON contract.templateId = contracttemplate.templateId
+        LEFT JOIN model model ON model.modelId = contracttemplate.modelId
+        WHERE
+          1 = 1
+        AND contract.manageOrgId = #{pd.orgId}
+        AND contract.status = #{pd.status}
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            model.name LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY contract.contractId ASC
+    </select>
+
+    <!-- 驳回列表 -->
+    <select id="bhlistPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          contract.*, model.name as modelName
+        FROM
+          contract contract
+        LEFT JOIN contracttemplate contracttemplate ON contract.templateId = contracttemplate.templateId
+        LEFT JOIN model model ON model.modelId = contracttemplate.modelId
+        WHERE
+          1 = 1
+        AND contract.publisherOrgId = #{pd.orgId}
+        AND contract.status = #{pd.status}
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            model.name LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND contract.createTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY contract.contractId ASC
+    </select>
+
+    <!-- 新增 -->
+    <insert id="save" useGeneratedKeys="true" keyProperty="contractId" parameterType="com.admin.entity.enterprise.Contract" flushCache="false">
+        INSERT INTO contract (
+            contractNo,
+            templateId,
+            contractName,
+            createTime,
+            status,
+            publisherOrgId,
+            delegatorOrgId,
+            manageOrgId
+        ) VALUES (
+            #{contractNo},
+            #{templateId},
+            #{contractName},
+            #{createTime},
+            #{status},
+            #{publisherOrgId},
+            #{delegatorOrgId},
+            #{manageOrgId}
+        )
+    </insert>
+
+    <!-- 通过id获取数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+          *
+        FROM
+          contract
+        WHERE
+          contractId = #{ID}
+    </select>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.admin.entity.enterprise.Contract" flushCache="false">
+        UPDATE
+          contract
+        <set>
+            <if test="contractNo != null and contractNo != ''">
+                contractNo = #{contractNo},
+            </if>
+            <if test="contractName != null and contractName != ''">
+                contractName = #{contractName},
+            </if>
+                status = #{status},
+            <if test="reason != null and reason != ''">
+                reason = #{reason},
+            </if>
+            <if test="updateTime != null and updateTime != ''">
+                updateTime = #{updateTime},
+            </if>
+        </set>
+        WHERE
+          contractId = #{contractId}
+    </update>
+
+    <!-- 更新合同状态 -->
+    <update id="updateStatus" parameterType="com.admin.entity.enterprise.Contract" flushCache="false">
+        UPDATE
+          contract
+        SET
+          status = #{status}
+        WHERE
+          contractId = #{contractId}
+    </update>
+
+    <!-- 按id集合获取列表 -->
+    <select id="findByIdList" parameterType="list" resultType="pd" useCache="false">
+        SELECT
+          *
+        FROM
+          contract
+        WHERE contractId IN
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 按id集合获取列表 -->
+    <select id="findByContractId" parameterType="int" resultType="com.admin.entity.enterprise.Contract" useCache="false">
+        SELECT
+        *
+        FROM
+        contract
+        WHERE contractId =#{contractId}
+    </select>
+
+    <!-- 按合同编号获取列表 -->
+    <select id="findByContractNo" parameterType="com.admin.entity.enterprise.Contract" resultType="com.admin.entity.enterprise.Contract" useCache="false">
+        SELECT
+          *
+        FROM
+          contract
+        WHERE contractNo = #{contractNo}
+        AND status != ""
+        AND status != 5
+    </select>
+
+    <!-- 检查合同编号是否存在 -->
+    <select id="checkContractNo" parameterType="pd" resultType="com.admin.entity.enterprise.Contract" useCache="false">
+        SELECT
+          *
+        FROM
+          contract
+        WHERE contractNo = #{contractNo} and contractId != #{contractId}
+        AND status != ""
+        AND Status != 5
+    </select>
+
+</mapper>

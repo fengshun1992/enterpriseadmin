@@ -1,0 +1,547 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserXMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 换皮肤-->
+    <update id="setSKIN" parameterType="pd" flushCache="false">
+		update SYS_USER set 
+		SKIN = #{SKIN} 
+		where USERNAME = #{USERNAME}
+	</update>
+
+    <!-- 更新登录时间 -->
+    <update id="updateLastLogin" parameterType="pd" flushCache="false">
+		update SYS_USER set 
+		LAST_LOGIN = #{LAST_LOGIN} 
+		where USER_ID = #{USER_ID}
+	</update>
+    <!-- 注销 -->
+    <update id="logOutUser" parameterType="pd" flushCache="false">
+		update SYS_USER set
+		IS_LOGOUT = #{IS_LOGOUT}
+		where USER_ID = #{USER_ID}
+	</update>
+    <!-- 注销特定角色用户 -->
+    <update id="logOutRoleUser" parameterType="pd" flushCache="false">
+		update SYS_USER set
+		IS_LOGOUT = #{IS_LOGOUT}
+		where ROLE_ID LIKE CONCAT(CONCAT('%', #{ROLE_ID}),'%')
+	</update>
+
+    <!-- 判断用户名和密码 -->
+    <select id="getUserInfo" parameterType="pd" resultType="pd" useCache="false">
+        <!-- insert update delete (flushCache="true/false") -->
+        select * from SYS_USER
+        where 1=1
+        <if test="USERNAME != null and PASSWORD != null">
+            and (
+            (USERNAME = #{USERNAME} and PASSWORD = #{PASSWORD})
+            or
+            (EMAIL = #{USERNAME} and PASSWORD = #{PASSWORD})
+            or
+            (NUMCODE = #{USERNAME} and PASSWORD = #{PASSWORD})
+            )
+        </if>
+        <if test="USER_ID != null and USER_ID != ''">
+            and USER_ID = #{USER_ID}
+        </if>
+    </select>
+
+
+    <!-- 存入IP -->
+    <update id="saveIP" parameterType="pd" flushCache="false">
+		update SYS_USER 
+			set 
+				IP = #{IP}
+			where 
+				USERNAME = #{USERNAME}
+	</update>
+
+    <!-- 修改 -->
+    <update id="editU" parameterType="pd" flushCache="false">
+        update SYS_USER
+        set USERNAME = #{USERNAME},
+        NAME = #{NAME},
+        ROLE_ID = #{ROLE_ID},
+        BZ = #{BZ},
+        EMAIL = #{EMAIL},
+        PHONE = #{PHONE},
+        IS_LOGOUT = #{IS_LOGOUT}
+        <if test="PASSWORD != null and PASSWORD != ''">
+            ,PASSWORD = #{PASSWORD}
+        </if>
+        where
+        USER_ID = #{USER_ID}
+    </update>
+
+    <!-- 通过user_id获取数据 -->
+    <select id="findByUiId" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			USER_ID,
+			USERNAME,
+			PASSWORD,
+			NAME,
+			RIGHTS,
+			ROLE_ID,
+			LAST_LOGIN,
+			IP,
+			STATUS,
+			BZ,
+			SKIN,
+			EMAIL,
+			NUMCODE,
+			PHONE,
+			IS_LOGOUT
+		from 
+			SYS_USER
+		where 
+			USER_ID = #{USER_ID}
+	</select>
+
+    <!-- 通过邮箱获取数据 -->
+    <select id="findByUE" parameterType="pd" resultType="pd" useCache="false">
+        select
+        USER_ID,
+        USERNAME,
+        PASSWORD,
+        NAME,
+        RIGHTS,
+        ROLE_ID,
+        LAST_LOGIN,
+        IP,
+        STATUS,
+        BZ,
+        SKIN,
+        EMAIL,
+        NUMCODE,
+        PHONE,
+        IS_LOGOUT
+        from
+        SYS_USER
+        where
+        EMAIL = #{EMAIL}
+        <if test="USERNAME != null and USERNAME != ''">
+            and USERNAME != #{USERNAME}
+        </if>
+    </select>
+
+    <!-- 通过编号获取数据 -->
+    <select id="findByUN" parameterType="pd" resultType="pd" useCache="false">
+        select
+        USER_ID,
+        USERNAME,
+        PASSWORD,
+        NAME,
+        RIGHTS,
+        ROLE_ID,
+        LAST_LOGIN,
+        IP,
+        STATUS,
+        BZ,
+        SKIN,
+        EMAIL,
+        NUMCODE,
+        PHONE,
+        IS_LOGOUT
+        from
+        SYS_USER
+        where
+        NUMCODE = #{NUMBER}
+        <if test="USERNAME != null and USERNAME != ''">
+            and USERNAME != #{USERNAME}
+        </if>
+    </select>
+
+    <!-- 通过USERNAME获取数据 -->
+    <select id="findByUId" parameterType="pd" resultType="pd" useCache="false">
+		select 
+			USER_ID,
+			USERNAME,
+			PASSWORD,
+			NAME,
+			RIGHTS,
+			ROLE_ID,
+			LAST_LOGIN,
+			IP,
+			STATUS,
+			BZ,
+			SKIN,
+			EMAIL,
+			NUMCODE,
+			PHONE,
+			USERNAME,
+			IS_LOGOUT
+		from 
+			SYS_USER
+		where 
+			USERNAME = #{USERNAME}
+	</select>
+
+    <!-- 新增用户 -->
+    <insert id="saveU" parameterType="pd" flushCache="false">
+		insert into SYS_USER (
+			USERNAME,
+			PASSWORD,
+			NAME,
+			RIGHTS,
+			ROLE_ID,
+			LAST_LOGIN,
+			IP,
+			STATUS,
+			BZ,
+			SKIN,
+			EMAIL,
+			PHONE,
+			IS_LOGOUT
+		) values (
+			#{USERNAME},
+			#{PASSWORD},
+			#{NAME},
+			#{RIGHTS},
+			#{ROLE_ID},
+			#{LAST_LOGIN},
+			#{IP},
+			#{STATUS},
+			#{BZ},
+			#{SKIN},
+			#{EMAIL},
+			#{PHONE},
+			#{IS_LOGOUT}
+		)
+	</insert>
+
+
+    <!-- 用户列表(用户组) -->
+    <select id="userlistPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+        u.USER_ID,
+        u.USERNAME,
+        u. PASSWORD,
+        u.LAST_LOGIN,
+        u. NAME,
+        u.IP,
+        u.EMAIL,
+        u.NUMCODE,
+        u.PHONE,
+        u.ROLE_ID,
+        CASE
+        WHEN u.IS_LOGOUT = '0' THEN
+        '可用'
+        WHEN u.IS_LOGOUT = '1' THEN
+        '不可用'
+        END AS IS_LOGOUT
+        FROM
+        SYS_USER u
+        WHERE
+        1=1
+        -- AND u.USERNAME != 'admin'
+        -- AND (u.ROLE_ID != '7')
+        <if test="pd.USERNAME != null and pd.USERNAME != ''"><!-- 关键词检索 -->
+            AND(
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            OR
+            u.EMAIL LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            OR
+            u.NUMCODE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            OR
+            u.NAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            OR
+            u.PHONE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            )
+        </if>
+        <if test="pd.ROLEZ_ID != null and pd.ROLEZ_ID != ''"><!-- 角色检索 -->
+            AND u.ROLE_ID LIKE CONCAT(CONCAT('%', #{pd.ROLEZ_ID}),'%')
+        </if>
+        <if test="pd.lastLoginStart != null and pd.lastLoginStart != ''"><!-- 登录时间检索 -->
+            AND u.LAST_LOGIN &gt;= #{pd.lastLoginStart}
+        </if>
+        <if test="pd.lastLoginEnd != null and pd.lastLoginEnd != ''"><!-- 登录时间检索 -->
+            AND u.LAST_LOGIN &lt;= #{pd.lastLoginEnd}
+        </if>
+        <if test="pd.IS_LOGOUT != null and pd.IS_LOGOUT != ''"><!-- 是否注销检索 -->
+            AND u.IS_LOGOUT = #{pd.IS_LOGOUT}
+        </if>
+        ORDER BY u.LAST_LOGIN DESC
+    </select>
+
+    <!-- 用户列表(用户组) -->
+    <select id="userlistPageRoleZ" parameterType="page" resultType="pd" useCache="false">
+        select u.USER_ID,
+        u.USERNAME,
+        u.PASSWORD,
+        u.LAST_LOGIN,
+        u.NAME,
+        u.IP,
+        u.EMAIL,
+        u.NUMCODE,
+        u.PHONE,
+        u.ROLE_ID,
+        case when u.IS_LOGOUT = '0' then '可用'
+        when u.IS_LOGOUT = '1' then '不可用' END as IS_LOGOUT
+        from SYS_USER u
+        where 1=1
+        -- and u.USERNAME != 'admin'
+        --  and (u.ROLE_ID != '7')
+        <if test="pd.USERNAME != null and pd.USERNAME != ''"><!-- 关键词检索 -->
+            and
+            (
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.EMAIL LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.NUMCODE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.NAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.PHONE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            )
+        </if>
+        <if test="pd.ROLEZ_ID != null and pd.ROLEZ_ID != ''"><!-- 角色检索 -->
+            and u.ROLE_ID LIKE CONCAT(CONCAT('%', #{pd.ROLEZ_ID}),'%')
+        </if>
+        <if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 登录时间检索 -->
+            and u.LAST_LOGIN &gt;= #{pd.lastLoginStart}
+        </if>
+        <if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 登录时间检索 -->
+            and u.LAST_LOGIN &lt;= #{pd.lastLoginEnd}
+        </if>
+        <if test="pd.IS_LOGOUT!=null and pd.IS_LOGOUT!=''"><!-- 是否注销检索 -->
+            and u.IS_LOGOUT = #{pd.IS_LOGOUT}
+        </if>
+        order by u.LAST_LOGIN DESC
+    </select>
+
+    <!-- 用户列表(用户组) -->
+    <select id="userlistPageRoleP" parameterType="page" resultType="pd" useCache="false">
+        select t1.PARENT_ID,t2.* from (select r.PARENT_ID,r.ROLE_ID from SYS_ROLE r ) t1 ,(select u.USER_ID,
+        u.USERNAME,
+        u.PASSWORD,
+        u.LAST_LOGIN,
+        u.NAME,
+        u.IP,
+        u.EMAIL,
+        u.NUMCODE,
+        u.PHONE,
+        u.ROLE_ID,
+        case when u.IS_LOGOUT = '0' then '可用'
+        when u.IS_LOGOUT = '1' then '不可用' END as IS_LOGOUT
+        from SYS_USER u
+        where 1=1
+--         and u.USERNAME != 'admin'
+--         and (u.ROLE_ID != '7')
+        <if test="pd.USERNAME != null and pd.USERNAME != ''"><!-- 关键词检索 -->
+            and
+            (
+            u.USERNAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.EMAIL LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.NUMCODE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.NAME LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            or
+            u.PHONE LIKE CONCAT(CONCAT('%', #{pd.USERNAME}),'%')
+            )
+        </if>
+        <if test="pd.ROLEZ_ID != null and pd.ROLEZ_ID != ''"><!-- 角色检索 -->
+            and u.ROLE_ID LIKE CONCAT(CONCAT('%', #{pd.ROLEZ_ID}),'%')
+        </if>
+        <if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 登录时间检索 -->
+            and u.LAST_LOGIN &gt;= #{pd.lastLoginStart}
+        </if>
+        <if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 登录时间检索 -->
+            and u.LAST_LOGIN &lt;= #{pd.lastLoginEnd}
+        </if>
+        <if test="pd.IS_LOGOUT!=null and pd.IS_LOGOUT!=''"><!-- 是否注销检索 -->
+            and u.IS_LOGOUT = #{pd.IS_LOGOUT}
+        </if>
+        order by u.LAST_LOGIN DESC )t2
+        <![CDATA[ where t1.ROLE_ID = t2.ROLE_ID and t1.PARENT_ID = #{pd.ROLEZ_ID} ]]>
+
+    </select>
+
+
+    <!-- 用户列表(全部) -->
+    <select id="listAllUser" parameterType="pd" resultType="pd" useCache="false">
+        select
+            u.USER_ID,
+            u.USERNAME,
+            u.PASSWORD,
+            u.LAST_LOGIN,
+            u.NAME,
+            u.IP,
+            u.EMAIL,
+            u.NUMCODE,
+            u.PHONE,
+            r.ROLE_ID,
+            r.ROLE_NAME,
+        case when u.IS_LOGOUT = '0' then '可用'
+        when u.IS_LOGOUT = '1' then '不可用' END as IS_LOGOUT
+        from SYS_USER u, SYS_ROLE r
+        where u.ROLE_ID = r.ROLE_ID
+        -- AND u.USERNAME != 'admin'
+        -- AND (u.ROLE_ID != '7')
+        order by u.USERNAME
+    </select>
+
+    <!-- 删除用户 -->
+    <delete id="deleteU" parameterType="pd" flushCache="false">
+		delete from SYS_USER
+		where 
+			USER_ID = #{USER_ID}
+	</delete>
+
+
+    <insert id="insertSelective" parameterType="User">
+        insert into SYS_USER
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                USER_ID,
+            </if>
+            <if test="username != null">
+                USERNAME,
+            </if>
+            <if test="password != null">
+                PASSWORD,
+            </if>
+            <if test="name != null">
+                NAME,
+            </if>
+            <if test="rights != null">
+                RIGHTS,
+            </if>
+            <if test="roleId != null">
+                ROLE_ID,
+            </if>
+            <if test="lastLogin != null">
+                LAST_LOGIN,
+            </if>
+            <if test="ip != null">
+                IP,
+            </if>
+            <if test="status != null">
+                STATUS,
+            </if>
+            <if test="bz != null">
+                BZ,
+            </if>
+            <if test="skin != null">
+                SKIN,
+            </if>
+            <if test="email != null">
+                EMAIL,
+            </if>
+            <if test="numcode != null">
+                NUMCODE,
+            </if>
+            <if test="phone != null">
+                PHONE,
+            </if>
+            <if test="isLogout != null">
+                IS_LOGOUT,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">
+                #{userId,jdbcType=VARCHAR},
+            </if>
+            <if test="username != null">
+                #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="rights != null">
+                #{rights,jdbcType=VARCHAR},
+            </if>
+            <if test="roleId != null">
+                #{roleId,jdbcType=VARCHAR},
+            </if>
+            <if test="lastLogin != null">
+                #{lastLogin,jdbcType=VARCHAR},
+            </if>
+            <if test="ip != null">
+                #{ip,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="bz != null">
+                #{bz,jdbcType=VARCHAR},
+            </if>
+            <if test="skin != null">
+                #{skin,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="numcode != null">
+                #{numcode,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="orderUserid != null">
+                #{orderUserid,jdbcType=DECIMAL},
+            </if>
+            <if test="isLogout != null">
+                #{isLogout,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="User">
+        update SYS_USER
+        <set>
+            <if test="username != null">
+                USERNAME = #{username,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null">
+                PASSWORD = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                NAME = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="rights != null">
+                RIGHTS = #{rights,jdbcType=VARCHAR},
+            </if>
+            <if test="roleId != null">
+                ROLE_ID = #{roleId,jdbcType=VARCHAR},
+            </if>
+            <if test="lastLogin != null">
+                LAST_LOGIN = #{lastLogin,jdbcType=VARCHAR},
+            </if>
+            <if test="ip != null">
+                IP = #{ip,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                STATUS = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="bz != null">
+                BZ = #{bz,jdbcType=VARCHAR},
+            </if>
+            <if test="skin != null">
+                SKIN = #{skin,jdbcType=VARCHAR},
+            </if>
+            <if test="email != null">
+                EMAIL = #{email,jdbcType=VARCHAR},
+            </if>
+            <if test="numcode != null">
+                NUMCODE = #{numcode,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                PHONE = #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="isLogout != null">
+                IS_LOGOUT = #{isLogout,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where USER_ID = #{userId,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

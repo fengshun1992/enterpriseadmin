@@ -1,0 +1,1 @@
+yes,admin,watermark.png,admin,1,admin,1

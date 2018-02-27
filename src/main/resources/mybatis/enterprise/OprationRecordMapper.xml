@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OprationRecordMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 列表 -->
+    <select id="listPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          oprationrecord.*, contract.contractNo, contract.contractName
+        FROM
+	      oprationrecord oprationrecord, contract contract
+	    WHERE 1=1
+        AND oprationrecord.contractId = contract.contractId
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.oprationRecordStatus != null and pd.oprationRecordStatus != ''"><!-- 操作类型检索 -->
+            AND oprationrecord.opType = #{pd.oprationRecordStatus}
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND oprationrecord.opTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND oprationrecord.opTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY oprationrecord.recordId DESC
+    </select>
+
+    <!-- 新增 -->
+    <insert id="save" parameterType="com.admin.entity.enterprise.OprationRecord" flushCache="false">
+        INSERT INTO oprationrecord (
+            contractId,
+            opId,
+            opTime,
+            opType,
+            reason
+        ) VALUES (
+            #{contractId},
+            #{opId},
+            #{opTime},
+            #{opType},
+            #{reason}
+        )
+    </insert>
+
+    <!-- 通过id获取数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+          *
+        FROM
+          oprationrecord
+        WHERE
+          recordId = #{recordId}
+    </select>
+
+</mapper>

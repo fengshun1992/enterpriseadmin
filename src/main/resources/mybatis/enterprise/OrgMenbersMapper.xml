@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="OrgMenbersMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 新增 -->
+    <insert id="batchSave" parameterType="list" flushCache="false">
+        INSERT INTO orgmenbers (
+            orgId,
+            userId
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.orgId},
+            #{item.userId}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 通过id获取数据 -->
+    <select id="findByUserId" parameterType="pd" resultType="com.admin.entity.enterprise.OrgMenbers" useCache="false">
+        SELECT
+          *
+        FROM
+          orgmenbers
+        WHERE
+          userId = #{userId}
+    </select>
+
+    <!-- 删除 -->
+    <delete id="delete" parameterType="int" flushCache="false">
+        delete from orgmenbers
+        where
+        orgId = #{orgId}
+    </delete>
+
+    <!-- 查询所有机构人员id -->
+    <select id="getAllUserId" resultType="com.admin.entity.enterprise.OrgMenbers" useCache="false">
+        SELECT
+          *
+        FROM
+          orgmenbers
+    </select>
+</mapper>

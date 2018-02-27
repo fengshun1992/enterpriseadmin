@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractStampMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- fx通过id获取数据 -->
+    <select id="findFxByModelFileId" parameterType="int" resultType="com.admin.entity.enterprise.ContractStamp" useCache="false">
+        SELECT
+          *
+        FROM
+          contractstamp
+        WHERE
+          modelFileId = #{modelFileId}
+        AND (imgType = 1 OR imgType = 2)
+    </select>
+
+    <!-- st通过id获取数据 -->
+    <select id="findStByModelFileId" parameterType="int" resultType="com.admin.entity.enterprise.ContractStamp" useCache="false">
+        SELECT
+          *
+        FROM
+          contractstamp
+        WHERE
+          modelFileId = #{modelFileId}
+        AND (imgType = 3 OR imgType = 4)
+    </select>
+
+</mapper>

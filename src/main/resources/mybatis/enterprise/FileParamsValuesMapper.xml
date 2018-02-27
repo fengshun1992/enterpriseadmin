@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="FileParamsValuesMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+
+    <!-- 新增 -->
+    <insert id="batchSave" flushCache="false">
+        INSERT INTO fileparamvalues (
+            paramId,
+            targetFileId,
+            tableName,
+            param,
+            value,
+            rowIndex,
+            columnIndex
+        ) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.paramId},
+            #{item.targetFileId},
+            #{item.tableName},
+            #{item.param},
+            #{item.value},
+            #{item.rowIndex},
+            #{item.columnIndex}
+            )
+        </foreach>
+
+    </insert>
+
+    <!-- 通过id获取普通参数 -->
+    <select id="findParamById" parameterType="int" resultType="com.admin.entity.enterprise.FileParamsValues" useCache="false">
+        SELECT
+          *
+        FROM
+          fileparamvalues
+        WHERE
+          targetFileId = #{targetFileId} and tableName is NULL
+    </select>
+
+    <!-- 通过id获取表格参数 -->
+    <select id="findTableParamById" parameterType="int" resultType="com.admin.entity.enterprise.FileParamsValues" useCache="false">
+        SELECT
+          *
+        FROM
+          fileparamvalues
+        WHERE
+          targetFileId = #{targetFileId} and tableName is NOT NULL
+    </select>
+
+    <!-- 通过targetFileId获取表格参数 -->
+    <select id="listByTargetFileId" parameterType="int" resultType="com.admin.entity.enterprise.FileParamsValues" useCache="false">
+        SELECT
+        *
+        FROM
+        fileparamvalues
+        WHERE
+        targetFileId = #{targetFileId}
+    </select>
+
+
+    <!-- 通过id获取表格参数 -->
+    <select id="findByParamId" parameterType="int" resultType="com.admin.entity.enterprise.FileParamsValues" useCache="false">
+        SELECT
+        *
+        FROM
+        fileparamvalues
+        WHERE
+        paramId = #{paramId}
+    </select>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.admin.entity.enterprise.FileParamsValues" flushCache="false">
+        UPDATE
+        fileparamvalues
+        <set>
+            <if test="targetFileId != null and targetFileId != ''">
+                targetFileId = #{targetFileId},
+            </if>
+            <if test="tableName != null and tableName != ''">
+                tableName = #{tableName},
+            </if>
+            <if test="param != null and param != ''">
+                param = #{param},
+            </if>
+            <if test="value != null and value != ''">
+                value = #{value},
+            </if>
+            <if test="rowIndex != null and rowIndex != ''">
+                rowIndex = #{rowIndex},
+            </if>
+            <if test="columnIndex != null and columnIndex != ''">
+                columnIndex = #{columnIndex},
+            </if>
+        </set>
+        WHERE
+          paramId = #{paramId}
+    </update>
+
+    <!-- 批量更新 -->
+    <update id="batchUpdate" flushCache="false">
+        UPDATE
+        fileparamvalues
+        <foreach collection="list" item="item" index="index" separator=",">
+            <set>
+                <if test="item.targetFileId != null and item.targetFileId != ''">
+                    targetFileId = #{item.targetFileId},
+                </if>
+                <if test="item.tableName != null and item.tableName != ''">
+                    tableName = #{item.tableName},
+                </if>
+                <if test="item.param != null and item.param != ''">
+                    param = #{item.param},
+                </if>
+                <if test="item.value != null and item.value != ''">
+                    value = #{item.value},
+                </if>
+                <if test="item.rowIndex != null and item.rowIndex != ''">
+                    rowIndex = #{item.rowIndex},
+                </if>
+                <if test="item.columnIndex != null and item.columnIndex != ''">
+                    columnIndex = #{item.columnIndex},
+                </if>
+            </set>
+            WHERE
+            paramId = #{item.paramId}
+        </foreach>
+
+    </update>
+
+    <!-- 删除 -->
+    <delete id="deleteByTargetFileId" parameterType="int" flushCache="false">
+        delete from fileparamvalues
+        where
+        targetFileId = #{targetFileId}
+    </delete>
+
+</mapper>

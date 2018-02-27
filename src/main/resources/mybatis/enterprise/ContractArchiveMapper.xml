@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ContractArchiveMapper">
+
+    <cache type="org.mybatis.caches.ehcache.LoggingEhcache"/>
+    <!-- 新增 -->
+    <insert id="save" useGeneratedKeys="true" keyProperty="contractId"
+            parameterType="com.admin.entity.enterprise.Contract" flushCache="false">
+        INSERT INTO contractarchive (
+            contractId,
+            type
+        ) VALUES (
+            #{contractId},
+            #{type}
+        )
+    </insert>
+
+    <!-- 归档列表 -->
+    <select id="gdlistPage" parameterType="page" resultType="pd" useCache="false">
+        SELECT
+          archive.type, contract.*, model.name as modelName
+        FROM
+          contractarchive archive
+        LEFT JOIN contract contract ON archive.contractId = contract.contractId
+        LEFT JOIN contracttemplate contracttemplate ON contract.templateId = contracttemplate.templateId
+        LEFT JOIN model model ON model.modelId = contracttemplate.modelId
+        WHERE
+          1 = 1
+        <if test="pd.type != null and pd.type != ''">
+            AND archive.type = #{pd.type}
+        </if>
+        <if test="pd.keyWords != null and pd.keyWords != ''"><!-- 关键词检索 -->
+            AND
+            (
+            contract.contractNo LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            contract.contractName LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            OR
+            model.name LIKE CONCAT(CONCAT('%', #{pd.keyWords}),'%')
+            )
+        </if>
+        <if test="pd.startDate != null and pd.startDate != ''"><!-- 日期检索 -->
+            AND contract.updateTime &gt;= #{pd.startDate}
+        </if>
+        <if test="pd.endDate != null and pd.endDate != ''"><!-- 日期检索 -->
+            AND contract.updateTime &lt;= #{pd.endDate}
+        </if>
+        ORDER BY contract.updateTime DESC
+    </select>
+
+    <!-- 通过id获取数据 -->
+    <select id="findById" parameterType="pd" resultType="pd" useCache="false">
+        SELECT
+          *
+        FROM
+          contractarchive
+        WHERE
+          contractId = #{ID}
+    </select>
+
+    <!-- 更新 -->
+    <update id="update" parameterType="com.admin.entity.enterprise.ContractArchive" flushCache="false">
+        UPDATE
+          contractarchive
+        <set>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="reason != null and reason != ''">
+                reason = #{reason},
+            </if>
+            <if test="userId != null and userId != ''">
+                userId = #{userId},
+            </if>
+            <if test="opTime != null and opTime != ''">
+                opTime = #{opTime},
+            </if>
+        </set>
+        WHERE
+          contractId = #{contractId}
+    </update>
+
+</mapper>
