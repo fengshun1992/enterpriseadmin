@@ -19,10 +19,11 @@ public class SFTPListener implements ServletContextListener {
 
     public static ChannelSftp channelSftp;
 
+    @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         System.out.println("加载业务字典");
 
-        JSch jsch = new JSch();
+        /*JSch jsch = new JSch();
         String fileHost = SysConstant.FILE_HOST;
         String userName = SysConstant.FILE_USERNAME;
         String password = SysConstant.FILE_PASSWORD;
@@ -39,9 +40,10 @@ public class SFTPListener implements ServletContextListener {
             System.out.println("sftpChannel 已连接");
         } catch (JSchException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
+    @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
 
     }
